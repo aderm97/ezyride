@@ -1,0 +1,55 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  RIDER
+  DRIVER
+}
+
+enum RideStatus {
+  PENDING
+  ACCEPTED
+  ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role
+  lat       Float?
+  lng       Float?
+  isActive  Boolean  @default(false) // For driver online status
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ridesAsRider  Ride[] @relation("RiderRelation")
+  ridesAsDriver Ride[] @relation("DriverRelation")
+}
+
+model Ride {
+  id         String     @id @default(uuid())
+  riderId    String
+  driverId   String?
+  status     RideStatus @default(PENDING)
+  pickupLat  Float
+  pickupLng  Float
+  dropoffLat Float
+  dropoffLng Float
+  fare       Float      @default(0.0)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  rider  User  @relation("RiderRelation", fields: [riderId], references: [id])
+  driver User? @relation("DriverRelation", fields: [driverId], references: [id])
+}
