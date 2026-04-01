@@ -4,6 +4,9 @@ frontend:
     preBuild:
       commands:
         - npm ci
+        - echo "DATABASE_URL=$DATABASE_URL" >> .env.production
+        - echo "JWT_SECRET=$JWT_SECRET" >> .env.production
+        - echo "NEXT_PUBLIC_MAPBOX_TOKEN=$NEXT_PUBLIC_MAPBOX_TOKEN" >> .env.production
         - npx prisma generate
     build:
       commands:
