@@ -21,6 +21,7 @@ export async function POST(req: Request) {
     }
 
     const hashedPassword = await hashPassword(password);
+    console.log('Attempting to create user in database...');
     const user = await prisma.user.create({
       data: {
         email,
@@ -29,13 +30,28 @@ export async function POST(req: Request) {
         role,
       },
     });
+    console.log('User created successfully:', user.id);
 
-    const token = signToken({ id: user.id, role: user.role });
+    const token = signToken({ userId: user.id, email: user.email, role: user.role });
 
-    const { password: _, ...userWithoutPassword } = user;
-    return NextResponse.json({ user: userWithoutPassword, token }, { status: 201 });
-  } catch (error) {
-    console.error('Registration API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+    });
+  } catch (error: any) {
+    console.error('REGISTRATION_ERROR_DETAIL:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code
+    });
+    return NextResponse.json(
+      { error: 'Internal server error', detail: error.message },
+      { status: 500 }
+    );
   }
 }
